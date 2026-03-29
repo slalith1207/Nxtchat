@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+  <title>NexChat</title>
+  <meta name="description" content="NexChat – End-to-end encrypted messenger, calls, reels, shopping and payments."/>
+  <meta name="theme-color" content="#0a0a0f"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     SPLASH
+═══════════════════════════════════ -->
+<div id="splash" class="splash">
+  <div class="splash-orbs"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
+  <div class="splash-content">
+    <div class="splash-logo-wrap">
+      <div class="splash-icon-ring"></div>
+      <div class="splash-icon">💬</div>
+    </div>
+    <div class="splash-brand">NexChat</div>
+    <div class="splash-tagline">Connect · Create · Transact</div>
+    <div class="splash-progress"><div class="splash-bar" id="splashBar"></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     AUTH FLOW (Login → OTP → Profile)
+═══════════════════════════════════ -->
+<div id="authFlow" class="auth-flow hidden">
+  <div class="auth-orbs"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+
+  <!-- Step 1: Login -->
+  <div class="auth-screen" id="authLogin">
+    <div class="auth-hero">
+      <div class="auth-hero-icon">💬</div>
+      <h1 class="auth-title">Welcome to<br/><span class="grad-text">NexChat</span></h1>
+      <p class="auth-sub">Sign in with your mobile number or email to get started.</p>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabPhone" onclick="switchAuthTab('phone')">📱 Mobile</button>
+        <button class="auth-tab" id="tabEmail" onclick="switchAuthTab('email')">✉️ Email</button>
+      </div>
+
+      <div id="phoneInput" class="auth-input-section">
+        <div class="input-group-fancy">
+          <div class="country-code" onclick="toggleCountryPicker()">
+            <span id="flagEmoji">🇮🇳</span>
+            <span id="dialCode">+91</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <input type="tel" id="phoneField" placeholder="Enter mobile number" maxlength="10" pattern="[0-9]*" inputmode="numeric"/>
+        </div>
+        <div class="country-picker hidden" id="countryPicker">
+          <input type="text" placeholder="Search country…" id="countrySearch" oninput="filterCountries(this.value)"/>
+          <div id="countryList" class="country-list"></div>
+        </div>
+      </div>
+
+      <div id="emailInput" class="auth-input-section hidden">
+        <div class="input-group-fancy solo">
+          <input type="email" id="emailField" placeholder="Enter your email address"/>
+        </div>
+      </div>
+
+      <button class="btn-auth-primary" id="sendOtpBtn" onclick="sendOTP()">
+        <span id="sendOtpText">Send OTP</span>
+        <div class="btn-spinner hidden" id="sendOtpSpinner"></div>
+      </button>
+
+      <p class="auth-terms">By continuing you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></p>
+    </div>
+  </div>
+
+  <!-- Step 2: OTP Verification -->
+  <div class="auth-screen hidden" id="authOTP">
+    <div class="auth-hero">
+      <div class="auth-hero-icon">🔐</div>
+      <h1 class="auth-title">Verify It's You</h1>
+      <p class="auth-sub" id="otpSentTo">We sent a 6-digit code to your number</p>
+    </div>
+
+    <div class="auth-card">
+      <div class="otp-boxes" id="otpBoxes">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+      </div>
+      <div id="otpDemoHint" class="otp-demo-hint">👆 Demo code: <strong>123456</strong></div>
+
+      <button class="btn-auth-primary" id="verifyOtpBtn" onclick="verifyOTP()">Verify & Continue</button>
+
+      <div class="otp-resend">
+        Didn't receive? <button class="link-btn" id="resendBtn" onclick="resendOTP()" disabled>Resend in <span id="resendTimer">30</span>s</button>
+      </div>
+      <button class="link-btn mt-8" onclick="goBackToLogin()">← Change number/email</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Profile Setup -->
+  <div class="auth-screen hidden" id="authProfile">
+    <div class="auth-hero">
+      <div class="auth-hero-icon">✨</div>
+      <h1 class="auth-title">Set Up Profile</h1>
+      <p class="auth-sub">Add your name and photo to let friends find you.</p>
+    </div>
+
+    <div class="auth-card">
+      <div class="profile-avatar-pick" onclick="pickProfilePhoto()">
+        <div class="profile-avatar-circle" id="profileAvatarPreview">
+          <span>👤</span>
+        </div>
+        <div class="profile-avatar-label">Add Photo</div>
+        <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" onchange="handleProfilePhoto(this)"/>
+      </div>
+
+      <div class="input-group-fancy solo" style="margin-bottom:12px">
+        <input type="text" id="profileName" placeholder="Your full name" maxlength="40"/>
+      </div>
+      <div class="input-group-fancy solo">
+        <input type="text" id="profileBio" placeholder="Bio (optional)" maxlength="80"/>
+      </div>
+
+      <button class="btn-auth-primary mt-16" onclick="completeProfile()">Get Started 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     MAIN APP
+═══════════════════════════════════ -->
+<div id="app" class="app hidden">
+
+  <!-- TOP BAR -->
+  <header class="app-topbar" id="appTopbar">
+    <button class="tb-icon" id="tbBack" style="display:none" onclick="handleTopbarBack()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="tb-title" id="tbTitle">Messages</div>
+    <div class="tb-actions">
+      <button class="tb-icon" onclick="openSearch()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <div class="tb-avatar" id="tbAvatar" onclick="openProfile()"></div>
+    </div>
+  </header>
+
+  <!-- CONTENT AREA -->
+  <div class="app-content" id="appContent">
+
+    <!-- ── CHAT LIST ── -->
+    <section class="screen active" id="screen-chats">
+      <div class="stories-row" id="storiesRow"></div>
+      <div class="chat-list" id="chatList"></div>
+      <button class="fab" onclick="openNewChat()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </section>
+
+    <!-- ── CONVERSATION ── -->
+    <section class="screen" id="screen-conversation">
+      <div class="conv-msgs" id="convMsgs"></div>
+      <div class="conv-input-bar">
+        <button class="ci-btn" id="attachBtn" onclick="triggerAttach()">📎</button>
+        <div class="ci-input-wrap">
+          <input type="text" id="convInput" placeholder="Message…" autocomplete="off"/>
+        </div>
+        <button class="ci-btn" id="emojiBtn2" onclick="insertEmoji()">😊</button>
+        <button class="ci-send" id="convSendBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+        <input type="file" id="attachInput" multiple style="display:none"/>
+      </div>
+    </section>
+
+    <!-- ── CALLS ── -->
+    <section class="screen" id="screen-calls">
+      <div class="calls-hero">
+        <div class="calls-ring-wrap"><div class="calls-pulse"></div><div class="calls-icon">📞</div></div>
+        <h2>Calls</h2>
+        <p>HD voice & video with end-to-end encryption</p>
+        <div class="calls-cta">
+          <button class="cta-btn cta-green" onclick="launchCall('voice')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11l-1.27 1.27a16 16 0 006.29 6.29l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            Voice
+          </button>
+          <button class="cta-btn cta-purple" onclick="launchCall('video')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            Video
+          </button>
+        </div>
+      </div>
+      <div class="recent-calls-label">Recent</div>
+      <div id="recentCallsList"></div>
+    </section>
+
+    <!-- ── REELS ── -->
+    <section class="screen reels-screen" id="screen-reels">
+      <div class="reels-scroll" id="reelsScroll"></div>
+      <button class="reels-create-fab" onclick="openReelRecorder()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </section>
+
+    <!-- ── SHOP ── -->
+    <section class="screen" id="screen-shop">
+      <div class="shop-search-row">
+        <div class="shop-search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="shopSearchInput" placeholder="Search products…" oninput="filterProducts(this.value)"/>
+        </div>
+        <button class="shop-cart-btn" onclick="openCart()">
+          🛒<span class="cart-badge" id="cartBadge">0</span>
+        </button>
+      </div>
+      <div class="shop-cats-row" id="shopCatsRow"></div>
+      <div class="shop-product-grid" id="shopProductGrid"></div>
+      <button class="fab" onclick="openAddProduct()">+</button>
+    </section>
+
+    <!-- ── PAY ── -->
+    <section class="screen" id="screen-pay">
+      <div class="pay-scroll">
+        <div class="pay-balance-card" id="payBalanceCard">
+          <div class="pbc-label">Total Balance</div>
+          <div class="pbc-amount" id="payAmount">$12,480.00</div>
+          <div class="pbc-sub">across all accounts</div>
+          <div class="pbc-actions">
+            <button onclick="openPayAction('send')"><span>↑</span>Send</button>
+            <button onclick="openPayAction('receive')"><span>↓</span>Receive</button>
+            <button onclick="openPayAction('topup')"><span>+</span>Top Up</button>
+            <button onclick="openPayAction('scan')"><span>⊞</span>QR</button>
+          </div>
+        </div>
+        <div class="pay-cards-section">
+          <div class="pay-section-head">
+            <span>💳 My Cards</span>
+            <button class="link-btn" onclick="openAddCard()">+ Add Card</button>
+          </div>
+          <div class="pay-cards-swipe" id="payCardsSwipe"></div>
+        </div>
+        <div class="pay-section-head" style="padding:0 16px">
+          <span>📊 Transactions</span>
+          <button class="link-btn" onclick="showAllTransactions()">See all</button>
+        </div>
+        <div id="payTxList"></div>
+      </div>
+    </section>
+
+    <!-- ── PROFILE ── -->
+    <section class="screen" id="screen-profile">
+      <div class="profile-screen">
+        <div class="profile-cover"></div>
+        <div class="profile-info-card">
+          <div class="profile-big-avatar" id="profileBigAvatar"></div>
+          <div class="profile-display-name" id="profileDisplayName">Alex Morgan</div>
+          <div class="profile-display-bio" id="profileDisplayBio">Living life one day at a time ✨</div>
+          <div class="profile-stats">
+            <div class="ps-item"><div class="ps-num">142</div><div class="ps-label">Posts</div></div>
+            <div class="ps-item"><div class="ps-num">8.4K</div><div class="ps-label">Followers</div></div>
+            <div class="ps-item"><div class="ps-num">302</div><div class="ps-label">Following</div></div>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <div class="pm-item" onclick="showToast('Edit Profile','info')"><span>✏️</span>Edit Profile</div>
+          <div class="pm-item" onclick="navigateTo('pay')"><span>💳</span>My Wallet & Cards</div>
+          <div class="pm-item" onclick="showToast('Settings opened','info')"><span>⚙️</span>Settings</div>
+          <div class="pm-item" onclick="showToast('Privacy settings','info')"><span>🔒</span>Privacy & Security</div>
+          <div class="pm-item logout" onclick="doLogout()"><span>🚪</span>Log Out</div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- end app-content -->
+
+  <!-- BOTTOM TAB BAR -->
+  <nav class="bottom-tabs" id="bottomTabs">
+    <button class="bt-item active" data-tab="chats" onclick="navigateTo('chats')">
+      <div class="bt-icon">💬</div><div class="bt-label">Chats</div>
+      <div class="bt-dot" id="dot-chats"></div>
+    </button>
+    <button class="bt-item" data-tab="calls" onclick="navigateTo('calls')">
+      <div class="bt-icon">📞</div><div class="bt-label">Calls</div>
+    </button>
+    <button class="bt-item" data-tab="reels" onclick="navigateTo('reels')">
+      <div class="bt-icon">▶️</div><div class="bt-label">Reels</div>
+    </button>
+    <button class="bt-item" data-tab="shop" onclick="navigateTo('shop')">
+      <div class="bt-icon">🛍️</div><div class="bt-label">Shop</div>
+      <div class="bt-dot" id="dot-shop" style="display:none"></div>
+    </button>
+    <button class="bt-item" data-tab="pay" onclick="navigateTo('pay')">
+      <div class="bt-icon">💳</div><div class="bt-label">Pay</div>
+    </button>
+  </nav>
+</div><!-- end app -->
+
+<!-- ═══════════════════════════════════
+     CALL OVERLAY (Camera Access)
+═══════════════════════════════════ -->
+<div class="call-overlay hidden" id="callOverlay">
+  <div class="call-bg-blur"></div>
+  <div class="call-remote-area" id="callRemoteArea">
+    <video id="remoteVideo" autoplay playsinline style="display:none"></video>
+    <div class="call-remote-placeholder" id="callRemotePlaceholder">
+      <div class="call-avatar-big" id="callAvatarBig"></div>
+      <div class="call-peer-name" id="callPeerName"></div>
+    </div>
+  </div>
+  <video id="localVideo" autoplay playsinline muted class="call-local-video hidden"></video>
+  <div class="call-info-row">
+    <div class="call-status" id="callStatus">Connecting…</div>
+    <div class="call-enc">🔒 End-to-end encrypted</div>
+  </div>
+  <div class="call-controls-bar">
+    <button class="ccb-btn" id="btnMic" onclick="toggleMic()" title="Mute">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
+    </button>
+    <button class="ccb-btn ccb-end" onclick="endCall()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M10.68 13.31a16 16 0 003.41 2.6l1.27-1.27a2 2 0 012.11-.45c.961.34 1.953.57 2.81.7A2 2 0 0122 18v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.42 19.42 0 01-6.09-6.09 19.79 19.79 0 01-3.07-8.68A2 2 0 014 3h3a2 2 0 012 1.72c.13.957.35 1.948.7 2.81a2 2 0 01-.45 2.11z"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
+    </button>
+    <button class="ccb-btn" id="btnCam" onclick="toggleCam()" title="Camera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+    </button>
+    <button class="ccb-btn" id="btnFlip" onclick="flipCamera()" title="Flip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     REEL RECORDER (Camera + Filters)
+═══════════════════════════════════ -->
+<div class="recorder-overlay hidden" id="recorderOverlay">
+  <div class="rec-cam-wrapper">
+    <video id="recVideo" autoplay playsinline muted class="rec-cam-stream"></video>
+    <canvas id="recCanvas" class="rec-cam-stream" style="display:none"></canvas>
+    <div class="rec-filter-name" id="recFilterName">No Filter</div>
+    <div class="rec-progress-ring" id="recProgressRing" style="display:none">
+      <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="8"/><circle id="recProgressCircle" cx="50" cy="50" r="46" fill="none" stroke="#7c3aed" stroke-width="8" stroke-dasharray="289" stroke-dashoffset="289" stroke-linecap="round" transform="rotate(-90 50 50)"/></svg>
+    </div>
+  </div>
+
+  <div class="rec-top-bar">
+    <button class="rec-close" onclick="closeRecorder()">✕</button>
+    <div class="rec-timer" id="recTimer">0:00</div>
+    <button class="rec-flip-btn" onclick="flipRecorderCamera()">🔄</button>
+  </div>
+
+  <div class="rec-filters-row" id="recFiltersRow"></div>
+
+  <div class="rec-bottom-bar">
+    <label class="rec-gallery-btn">
+      📷
+      <input type="file" accept="video/*,image/*" id="galleryInput" onchange="handleGalleryUpload(this)"/>
+    </label>
+    <button class="rec-rec-btn" id="recBtn" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">
+      <div class="rec-btn-inner"></div>
+    </button>
+    <button class="rec-effects-btn" onclick="toggleBeautyMode()">✨</button>
+  </div>
+
+  <div class="rec-preview hidden" id="recPreview">
+    <video id="recPreviewVideo" controls style="width:100%;height:100%;object-fit:cover"></video>
+    <div class="rec-preview-actions">
+      <button onclick="discardRecording()">✕ Discard</button>
+      <button class="rec-post-btn" onclick="postReel()">Post Reel 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     GLOBAL MODAL
+═══════════════════════════════════ -->
+<div class="modal-back hidden" id="modalBack" onclick="closeModal(event)">
+  <div class="modal-sheet" id="modalSheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-stack" id="toastStack"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
